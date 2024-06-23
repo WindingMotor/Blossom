@@ -1,16 +1,8 @@
-# musica
+# Blossom
+A simple flutter/dart based music player. Play music based on local mp3 and flac files. Mostly designed for mobile devices, and a work in progress!
 
-A new Flutter project.
+## Building on Linux
+Make sure to run these commands to update the locales
+``` export LC_NUMERIC="C"``` and ```export LC_NUMERIC="en_US.UTF-8"```
 
-## Getting Started
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
