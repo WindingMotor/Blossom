@@ -9,6 +9,9 @@ Blossom is a simple Flutter/Dart-based music player designed for playing local m
 - [ ] Testing & builds for iOS, Android, Windows, and Mac
 - [ ] Settings json & page
 - [ ] Background optimization
+- [ ] Desktop app spotDL integration
+- [ ] Whisper audio-to-text for lyrics
+- [ ] Local LLM to organize songs by types
 
 ### In Progress
 - [ ] Song information json storage
@@ -21,6 +24,7 @@ Blossom is a simple Flutter/Dart-based music player designed for playing local m
 - [X] Simple shuffle
 - [X] Fuzzy search
 - [X] Full song list page
+- [X] Sort by name, genre, artists, date
 - [X] Basic artists page
 - [X] Player widget
 - [x] Initial UI design
@@ -40,8 +44,7 @@ These commands set the numeric locale to `en_US.UTF-8`, enabling compatibility w
 
 Contributions are always welcome! Please ensure your pull request description clearly describes the addition.
 
-### Issues
+## Preview
 
-Feel free to submit issues and enhancement requests using the [GitHub issue tracker](https://github.com/yourusername/blossom/issues).
+<img src="/readmeimages/SongListPage.png" alt="Song List Page" width="350" height="auto">
 
-Please keep in mind Blossom is a work in progress and is in early development.
