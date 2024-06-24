@@ -14,11 +14,12 @@ Blossom is a simple Flutter/Dart-based music player designed for playing local m
 - [ ] Local LLM to organize songs by types
 
 ### In Progress
-- [ ] Song information json storage
 - [ ] Custom playlists & page
 - [ ] Albums page
+- [ ] Better artists search & filters
 
 ### Done
+- [X] Song information json storage
 - [x] Basic project structure
 - [X] Music playback
 - [X] Simple shuffle
