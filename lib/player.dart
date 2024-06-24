@@ -10,6 +10,7 @@ import 'package:whisper_dart/whisper_dart.dart';
 class Player extends ChangeNotifier {
   late AudioPlayer audioPlayer;
   final MetadataUtils _metadataUtils = MetadataUtils();
+  late MetadataManager _metadataManager;
 
   bool _isPlaying = false;
   Song? _currentSong;
@@ -34,12 +35,16 @@ class Player extends ChangeNotifier {
   String currentSortBy = 'Name';
   bool isSortingReversed = false;
 
+  final String songDirectory = '/home/isaac/Downloads/music/';
+  final String metadataDirectory = '/home/isaac/Downloads/music/metadata/';
+
   Player() {
     JustAudioMediaKit.ensureInitialized();
     audioPlayer = AudioPlayer();
+    _metadataManager = MetadataManager(
+        metadataDirectory: metadataDirectory, songsDirectory: songDirectory);
     _initializeAudioPlayer();
     _loadAllSongs();
-    _initializeFuzzySearch();
   }
 
   void _initializeAudioPlayer() {
@@ -55,15 +60,17 @@ class Player extends ChangeNotifier {
 
     audioPlayer.processingStateStream.listen((state) {
       if (state == ProcessingState.completed) {
-        nextSong();
+        _incrementPlayCount().then((_) {
+          nextSong();
+        });
       }
     });
   }
 
   Future<void> _loadAllSongs() async {
-    allSongs = await _metadataUtils
-        .fetchSongsFromDirectory('/home/isaac/Downloads/music/');
+    allSongs = await _metadataManager.loadSongsWithMetadata();
     playlistSongs = List.from(allSongs);
+    _initializeFuzzySearch();
     notifyListeners();
   }
 
@@ -89,6 +96,44 @@ class Player extends ChangeNotifier {
             weight: 2),
       ], threshold: 0.4, isCaseSensitive: false),
     );
+  }
+
+  Future<void> _incrementPlayCount() async {
+    if (_currentSong != null) {
+      final updatedMetadata = _currentSong!.metadata.copyWith(
+        playCount: _currentSong!.metadata.playCount + 1,
+        lastPlayed: DateTime.now(),
+      );
+      final updatedSong = _currentSong!.copyWith(metadata: updatedMetadata);
+
+      // Update the metadata in the manager
+      await _metadataManager.updateMetadata(updatedSong, updatedMetadata);
+
+      // Update the song in allSongs and playlistSongs
+      _updateSongInLists(updatedSong);
+
+      // Update the current song
+      _currentSong = updatedSong;
+
+      // Notify listeners after all updates are complete
+      notifyListeners();
+    }
+  }
+
+  void _updateSongInLists(Song updatedSong) {
+    // Update in allSongs
+    final allSongsIndex =
+        allSongs.indexWhere((s) => s.path == updatedSong.path);
+    if (allSongsIndex != -1) {
+      allSongs[allSongsIndex] = updatedSong;
+    }
+
+    // Update in playlistSongs
+    final playlistSongsIndex =
+        playlistSongs.indexWhere((s) => s.path == updatedSong.path);
+    if (playlistSongsIndex != -1) {
+      playlistSongs[playlistSongsIndex] = updatedSong;
+    }
   }
 
   void performSearch(String query) {
@@ -144,6 +189,16 @@ class Player extends ChangeNotifier {
             ? b.year.compareTo(a.year)
             : a.year.compareTo(b.year);
         break;
+      case 'Play Count':
+        comparator = (a, b) => isSortingReversed
+            ? a.metadata.playCount.compareTo(b.metadata.playCount)
+            : b.metadata.playCount.compareTo(a.metadata.playCount);
+        break;
+      case 'Last Played':
+        comparator = (a, b) => isSortingReversed
+            ? b.metadata.lastPlayed.compareTo(a.metadata.lastPlayed)
+            : a.metadata.lastPlayed.compareTo(b.metadata.lastPlayed);
+        break;
       default:
         return;
     }
@@ -181,9 +236,16 @@ class Player extends ChangeNotifier {
   Future<void> selectArtist(String artist) async {
     playlistSongs = allSongs.where((song) => song.artist == artist).toList();
     if (playlistSongs.isNotEmpty) {
-      currentIndex = 0;
-      await _playSong(playlistSongs[currentIndex]);
+      // Do not automatically start playing the first song
+      // Remove or comment out the lines that set currentIndex and play the song
+      // currentIndex = 0;
+      // await _playSong(playlistSongs[currentIndex]);
     }
+    notifyListeners();
+  }
+
+  void resetPlaylist() {
+    playlistSongs = List.from(allSongs);
     notifyListeners();
   }
 
@@ -197,6 +259,7 @@ class Player extends ChangeNotifier {
       await audioPlayer.setUrl(uri.toString());
       await audioPlayer.play();
       _currentSong = song;
+
       _isPlaying = true;
       notifyListeners();
     } catch (e) {
@@ -217,16 +280,28 @@ class Player extends ChangeNotifier {
   }
 
   void nextSong() {
+    // print("next");
+    //print("before ${_currentSong?.title.toString() ?? ''}");
+
     if (currentIndex < playlistSongs.length - 1) {
       currentIndex++;
       _playSong(playlistSongs[currentIndex]);
+      _currentSong = playlistSongs[currentIndex];
+    } else if (playlistSongs.isNotEmpty) {
+      // Loop back to the first song if we're at the end
+      currentIndex = 0;
+      _playSong(playlistSongs[currentIndex]);
     }
+    notifyListeners();
+
+    // print("after ${_currentSong?.title.toString() ?? ''}");
   }
 
   void previousSong() {
     if (currentIndex > 0) {
       currentIndex--;
       _playSong(playlistSongs[currentIndex]);
+      _currentSong = playlistSongs[currentIndex];
     }
   }
 

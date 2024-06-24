@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:musica/player.dart';
-import 'package:musica/player_widget.dart';
+import 'package:blossom/player.dart';
+import 'package:blossom/player_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:blur/blur.dart';
 
@@ -40,7 +40,13 @@ class _ArtistsPageState extends State<ArtistsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Artists'),
+        title: Row(
+          children: [
+            const Icon(Icons.person),
+            const SizedBox(width: 8),
+            const Text('Artists'),
+          ],
+        ),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.search),
@@ -108,13 +114,6 @@ class _ArtistsPageState extends State<ArtistsPage> {
                                   : '${player.getArtistSongCount(artist)} songs',
                             ),
                             const SizedBox(height: 8),
-                            IconButton(
-                              icon: const Icon(Icons.play_arrow),
-                              color: Colors.white,
-                              onPressed: () {
-                                player.selectArtist(artist);
-                              },
-                            ),
                           ],
                         ),
                       ),
@@ -158,24 +157,137 @@ class ArtistSongsPage extends StatelessWidget {
           final songs =
               player.allSongs.where((song) => song.artist == artist).toList();
           return ListView.builder(
+            padding: const EdgeInsets.all(20.0),
             itemCount: songs.length,
             itemBuilder: (context, index) {
               final song = songs[index];
-              return ListTile(
-                leading: Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    image: DecorationImage(
-                      fit: BoxFit.cover,
-                      image: MemoryImage(song.picture!.data),
-                    ),
-                  ),
+              final isCurrentSong = player.currentSong != null &&
+                  song.path == player.currentSong!.path;
+              return Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                title: Text(song.title),
-                subtitle: Text(song.album),
-                onTap: () => player.selectSong(song),
+                color: isCurrentSong
+                    ? Colors.transparent
+                    : Theme.of(context).cardColor,
+                margin: const EdgeInsets.all(8.0),
+                child: Stack(
+                  children: [
+                    if (isCurrentSong)
+                      Positioned.fill(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          clipBehavior: Clip.antiAlias,
+                          child: Blur(
+                            blur: 35,
+                            blurColor: Colors.black,
+                            colorOpacity: 0.65,
+                            overlay:
+                                Container(color: Colors.black.withOpacity(0.3)),
+                            child: Image.memory(
+                              song.picture!.data,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ListTile(
+                      leading: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(10),
+                          image: DecorationImage(
+                            fit: BoxFit.cover,
+                            image: MemoryImage(song.picture!.data),
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        song.title,
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: isCurrentSong ? Colors.white : null,
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            song.album,
+                            style: TextStyle(
+                              color: isCurrentSong
+                                  ? Colors.grey[200]
+                                  : Colors.grey,
+                            ),
+                          ),
+                          Text(
+                            song.genre,
+                            style: TextStyle(
+                              color: isCurrentSong
+                                  ? Colors.grey[200]
+                                  : Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              isCurrentSong
+                                  ? Icons.stop_circle
+                                  : Icons.play_arrow_rounded,
+                              color: isCurrentSong ? Colors.white : null,
+                            ),
+                            tooltip: isCurrentSong
+                                ? 'Stop ${song.title}'
+                                : 'Play ${song.title}',
+                            onPressed: () {
+                              if (isCurrentSong) {
+                                player.stop();
+                              } else {
+                                player.selectSong(song);
+                              }
+                            },
+                          ),
+                          Column(
+                            children: [
+                              Text(
+                                ' #${index + 1}',
+                                style: TextStyle(
+                                  color: isCurrentSong
+                                      ? Colors.grey[200]
+                                      : Colors.grey,
+                                ),
+                              ),
+                              Text(
+                                PlayerWidget.formatDuration(song.duration),
+                                style: TextStyle(
+                                  color: isCurrentSong
+                                      ? Colors.grey[200]
+                                      : Colors.grey,
+                                ),
+                              ),
+                              Text(
+                                ' ${song.metadata.playCount} plays',
+                                style: TextStyle(
+                                  color: isCurrentSong
+                                      ? Colors.grey[200]
+                                      : Colors.grey[600],
+                                ),
+                              )
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               );
             },
           );
