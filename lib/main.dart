@@ -190,7 +190,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 buildInkwell(
                   context,
-                  icon: Icons.queue_music_rounded,
+                  icon: Icons.list_alt_rounded,
                   title: 'Playlists',
                   subtitle: 'Browse your playlists',
                   onTap: () {

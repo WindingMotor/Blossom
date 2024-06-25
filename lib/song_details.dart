@@ -53,14 +53,17 @@ class SongDetailsPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Image.memory(
-                            song.picture!.data,
-                            width: double.infinity,
-                            height: 250,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+                            borderRadius: BorderRadius.circular(20),
+
+                            // player.currentSong!.path
+                            child: Hero(
+                                tag: 'song',
+                                child: Image.memory(
+                                  song.picture!.data,
+                                  width: double.infinity,
+                                  height: 250,
+                                  fit: BoxFit.cover,
+                                ))),
                       ),
                     ),
                     Padding(

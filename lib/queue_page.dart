@@ -16,10 +16,10 @@ class QueuePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-          title: Row(
+          title: const Row(
         children: [
-          const Icon(Icons.queue_music_rounded),
-          const SizedBox(width: 8),
+          Icon(Icons.queue_music_rounded),
+          SizedBox(width: 8),
           Text(
             'Current Queue',
           )

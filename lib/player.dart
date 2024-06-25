@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:fuzzy/fuzzy.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
-import 'package:path_provider/path_provider.dart';
 import 'metadata.dart';
 import 'package:whisper_dart/scheme/scheme.dart';
 import 'package:whisper_dart/whisper_dart.dart';
