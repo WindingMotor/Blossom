@@ -2,18 +2,18 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:blossom/settings.dart';
 import 'package:blur/blur.dart';
 import 'package:flutter/material.dart';
 import 'package:blossom/artist_page.dart';
 import 'package:blossom/player.dart';
 import 'package:blossom/player_widget.dart';
 import 'package:blossom/sort_dropdown.dart';
-import 'package:blossom/visual.dart';
 // Adjust the import path according to your project structure
 import 'package:provider/provider.dart';
 
 void main() {
-  // Initialize the app and provide the Player instance to the widget tree
+  WidgetsFlutterBinding.ensureInitialized();
 
   runApp(
     ChangeNotifierProvider(
@@ -28,23 +28,23 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-          brightness: Brightness.dark, // Enable dark mode
-          scaffoldBackgroundColor:
-              Colors.black.withOpacity(0.8), // Main background color
-          cardColor:
-              Colors.grey.shade900.withOpacity(0.2), // Card background color
-          appBarTheme: AppBarTheme(
-              color: Colors.black.withOpacity(0.8)), // App bar color
-          popupMenuTheme: PopupMenuThemeData(
-              color: Colors.black
-                  .withOpacity(0.8)), // Drop down menu background color
-          splashColor: Colors.pink.shade300.withOpacity(0.5)),
-      // Circular progress indicator theme
-
-      home: const MyHomePage(),
+    return Consumer<Player>(
+      builder: (context, player, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            brightness: Brightness
+                .dark, // Adjust the brightness according to your project
+            scaffoldBackgroundColor: Colors.black.withOpacity(0.8),
+            cardColor: Colors.grey.shade900.withOpacity(0.2),
+            appBarTheme: AppBarTheme(color: Colors.black.withOpacity(0.8)),
+            popupMenuTheme:
+                PopupMenuThemeData(color: Colors.black.withOpacity(0.8)),
+            splashColor: Colors.pink.shade300.withOpacity(0.5),
+          ),
+          home: const MyHomePage(),
+        );
+      },
     );
   }
 }
@@ -203,45 +203,18 @@ class _MyHomePageState extends State<MyHomePage> {
                   title: 'Settings',
                   subtitle: 'Manage Blossom',
                   onTap: () {
-                    // Implement navigation to settings page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SettingsPage()),
+                    );
                   },
                 ),
+                const SizedBox(
+                    height:
+                        16), // Add some space between the grid and the new card
               ],
             ),
-          ),
-          const SizedBox(height: 20),
-          Consumer<Player>(
-            builder: (context, player, child) {
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                height: player.isPlaying ? 120 : 0,
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 300),
-                  opacity: player.isPlaying ? 1.0 : 0.0,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(height: 10),
-                      Text(
-                        'Now Playing: ${player.currentSong?.title ?? ""}',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 10),
-                      SizedBox(
-                        height: 50,
-                        child: MusicVisualizer(
-                          color: Colors.pink.shade300,
-                          audioPlayer: player.audioPlayer,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
           ),
         ],
       ),

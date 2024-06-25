@@ -1,15 +1,18 @@
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:fuzzy/fuzzy.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
+import 'package:path_provider/path_provider.dart';
 import 'metadata.dart';
 import 'package:whisper_dart/scheme/scheme.dart';
 import 'package:whisper_dart/whisper_dart.dart';
 
+import 'settings.dart';
+
 class Player extends ChangeNotifier {
   late AudioPlayer audioPlayer;
-  final MetadataUtils _metadataUtils = MetadataUtils();
   late MetadataManager _metadataManager;
 
   bool _isPlaying = false;
@@ -35,16 +38,30 @@ class Player extends ChangeNotifier {
   String currentSortBy = 'Name';
   bool isSortingReversed = false;
 
-  final String songDirectory = '/home/isaac/Downloads/music/';
-  final String metadataDirectory = '/home/isaac/Downloads/music/metadata/';
+  late Settings settings;
 
   Player() {
+    _initializePlayer();
+  }
+
+  Future<void> _initializePlayer() async {
+    await _loadSettings();
     JustAudioMediaKit.ensureInitialized();
     audioPlayer = AudioPlayer();
     _metadataManager = MetadataManager(
-        metadataDirectory: metadataDirectory, songsDirectory: songDirectory);
+      metadataDirectory: settings.metadataDirectory,
+      songsDirectory: settings.musicDirectory,
+    );
+
     _initializeAudioPlayer();
-    _loadAllSongs();
+    await _loadAllSongs();
+    notifyListeners();
+  }
+
+  Future<void> _loadSettings() async {
+    settings = await Settings.load();
+    _volume = settings.defaultVolume;
+    notifyListeners();
   }
 
   void _initializeAudioPlayer() {
@@ -65,6 +82,14 @@ class Player extends ChangeNotifier {
         });
       }
     });
+  }
+
+  Future<void> updateSettings(Settings newSettings) async {
+    settings = newSettings;
+    await settings.save();
+    _volume = settings.defaultVolume;
+    audioPlayer.setVolume(_volume);
+    notifyListeners();
   }
 
   Future<void> _loadAllSongs() async {
@@ -383,5 +408,29 @@ class Player extends ChangeNotifier {
     }
     sortSongs(currentSortBy); // Re-apply the current sorting
     notifyListeners();
+  }
+
+  Future<String> getMusicDirectorySize() async {
+    try {
+      final musicDir = Directory(settings.musicDirectory);
+      int totalSize = 0;
+      await for (final file
+          in musicDir.list(recursive: true, followLinks: false)) {
+        if (file is File) {
+          totalSize += await file.length();
+        }
+      }
+      return _formatBytes(totalSize);
+    } catch (e) {
+      print('Error getting music directory size: $e');
+      return 'Unknown';
+    }
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes <= 0) return "0 B";
+    const suffixes = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+    var i = (log(bytes) / log(1024)).floor();
+    return '${(bytes / pow(1024, i)).toStringAsFixed(2)} ${suffixes[i]}';
   }
 }

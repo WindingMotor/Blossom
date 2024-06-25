@@ -8,10 +8,10 @@ class MusicVisualizer extends StatefulWidget {
   final AudioPlayer audioPlayer;
 
   const MusicVisualizer({
-    Key? key,
+    super.key,
     required this.color,
     required this.audioPlayer,
-  }) : super(key: key);
+  });
 
   @override
   _MusicVisualizerState createState() => _MusicVisualizerState();
@@ -38,10 +38,8 @@ class _MusicVisualizerState extends State<MusicVisualizer>
 
   void _listenToAudioChanges() {
     _volumeSubscription = widget.audioPlayer.volumeStream.listen((volume) {
-      if (volume != null) {
-        _updateHeights(volume);
-      }
-    });
+      _updateHeights(volume);
+        });
 
     // Add a listener for the player state
     widget.audioPlayer.playerStateStream.listen((playerState) {

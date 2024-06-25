@@ -1,19 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:metadata_god/metadata_god.dart';
 import 'package:path/path.dart' as path;
-
-class MetadataUtils {
-  MetadataUtils() {
-    MetadataGod.initialize();
-  }
-
-  Future<void> fetchMetadata(String file) async {
-    Metadata metadata = await MetadataGod.readMetadata(file: file);
-    debugPrint(metadata.album);
-  }
-}
 
 class Song {
   final String path;
@@ -117,13 +105,21 @@ class SongMetadata {
 }
 
 class MetadataManager {
-  final String metadataDirectory;
-  final String songsDirectory;
+  String metadataDirectory;
+  String songsDirectory;
 
   MetadataManager({
     required this.metadataDirectory,
     required this.songsDirectory,
   }) {
+    MetadataGod.initialize();
+    _ensureMetadataDirectoryExists();
+  }
+
+  void updateDirectories(
+      String newMetadataDirectory, String newSongsDirectory) {
+    metadataDirectory = newMetadataDirectory;
+    songsDirectory = newSongsDirectory;
     _ensureMetadataDirectoryExists();
   }
 

@@ -1,3 +1,4 @@
+import 'package:blossom/queue_page.dart';
 import 'package:blur/blur.dart';
 import 'package:flutter/material.dart';
 import 'package:blossom/song_details.dart';
@@ -15,6 +16,13 @@ class PlayerWidget extends StatefulWidget {
     String twoDigitSeconds =
         (duration.inSeconds % 60).toString().padLeft(2, '0');
     return "$twoDigitMinutes:$twoDigitSeconds";
+  }
+
+  static String formatDurationHour(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
   }
 
   @override
@@ -61,23 +69,23 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                 ),
               ),
             ),
-            GestureDetector(
-              onLongPress: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        SongDetailsPage(song: player.currentSong!),
-                  ),
-                );
-              },
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onLongPress: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            SongDetailsPage(song: player.currentSong!),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 8.0),
+                    child: Row(
                       children: [
                         GestureDetector(
                           onTap: _toggleImageExpansion,
@@ -154,67 +162,91 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                               player.globalShowPlayerBottomBar =
                                   !player.globalShowPlayerBottomBar),
                         ),
+                        IconButton(
+                          icon: const Icon(Icons.queue_music_rounded,
+                              color: Colors.white),
+                          tooltip: 'Queue',
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const QueuePage(),
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
-                    if (player.showPlayerBottomBar)
-                      Row(
-                        children: [
-                          Text(
-                            PlayerWidget.formatDuration(
-                                player.duration.inSeconds),
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                          Expanded(
-                            child: Slider(
-                              value: value,
-                              activeColor: Colors.grey.shade200,
-                              inactiveColor: Colors.black.withOpacity(0.2),
-                              thumbColor: Colors.white,
-                              min: 0,
-                              max: max,
-                              onChanged: (value) {
-                                if (player.duration.inSeconds > 0) {
-                                  final position =
-                                      Duration(seconds: value.round());
-                                  player.seek(position);
-                                }
-                              },
-                            ),
-                          ),
-                          Text(
-                            PlayerWidget.formatDuration(
-                                player.currentPosition.inSeconds),
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                          if (_showVolumeSlider)
-                            Expanded(
-                              child: Slider(
-                                value: player.volume,
-                                min: 0.0,
-                                max: 1.0,
-                                divisions: 50,
-                                label: '${(player.volume * 100).round()}%',
-                                activeColor: Colors.white,
-                                inactiveColor: Colors.grey,
-                                onChanged: (newVolume) {
-                                  setState(() {
-                                    player.setVolume(newVolume);
-                                  });
-                                },
-                              ),
-                            ),
-                          IconButton(
-                            icon: const Icon(Icons.volume_up,
-                                color: Colors.white),
-                            tooltip: 'Adjust Volume',
-                            onPressed: () => setState(
-                                () => _showVolumeSlider = !_showVolumeSlider),
-                          ),
-                        ],
-                      ),
-                  ],
+                  ),
                 ),
-              ),
+                if (player.showPlayerBottomBar)
+                  Row(
+                    children: [
+                      const SizedBox(width: 12),
+                      Text(
+                        PlayerWidget.formatDuration(player.duration.inSeconds),
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                      Expanded(
+                        child: Slider(
+                          value: value,
+                          activeColor: Colors.grey.shade200,
+                          inactiveColor: Colors.black.withOpacity(0.2),
+                          thumbColor: Colors.white,
+                          min: 0,
+                          max: max,
+                          onChanged: (value) {
+                            if (player.duration.inSeconds > 0) {
+                              final position = Duration(seconds: value.round());
+                              player.seek(position);
+                            }
+                          },
+                        ),
+                      ),
+                      Text(
+                        PlayerWidget.formatDuration(
+                            player.currentPosition.inSeconds),
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      if (_showVolumeSlider)
+                        Expanded(
+                          child: Slider(
+                            value: player.volume,
+                            min: 0.0,
+                            max: 1.0,
+                            divisions: 50,
+                            label: '${(player.volume * 100).round()}%',
+                            activeColor: Colors.white,
+                            inactiveColor: Colors.grey,
+                            onChanged: (newVolume) {
+                              setState(() {
+                                player.setVolume(newVolume);
+                              });
+                            },
+                          ),
+                        ),
+                      IconButton(
+                        icon: const Icon(Icons.volume_up, color: Colors.white),
+                        tooltip: 'Adjust Volume',
+                        onPressed: () => setState(
+                            () => _showVolumeSlider = !_showVolumeSlider),
+                      ),
+                    ],
+                  ),
+                if (!player.showPlayerBottomBar)
+                  SizedBox(
+                    height: 3,
+                    child: LinearProgressIndicator(
+                      value: player.duration.inSeconds > 0
+                          ? player.currentPosition.inSeconds /
+                              player.duration.inSeconds
+                          : 0.0,
+                      backgroundColor: Colors.transparent,
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(Colors.pink.shade300),
+                    ),
+                  ),
+              ],
             ),
           ],
         );
